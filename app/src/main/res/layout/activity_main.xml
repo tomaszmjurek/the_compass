@@ -6,6 +6,17 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/destination_text_view"
+        android:layout_marginTop="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/netguru_green"
+        android:text="@string/destination_info"/>
+
     <ImageView
         android:id="@+id/compassImage"
         android:layout_gravity="center"

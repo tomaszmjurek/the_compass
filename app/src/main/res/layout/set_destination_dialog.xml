@@ -21,7 +21,7 @@
 
         <TextView
             android:id="@+id/input_error_1"
-            android:textSize="10sp"
+            android:textSize="15sp"
             android:textColor="@android:color/holo_red_light"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -35,7 +35,7 @@
 
         <TextView
             android:id="@+id/input_error_2"
-            android:textSize="10sp"
+            android:textSize="15sp"
             android:textColor="@android:color/holo_red_light"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>

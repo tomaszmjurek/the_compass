@@ -6,4 +6,6 @@
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
     <string name="enter_destination_coordinates">Enter destination coordinates</string>
+    <string name="destination_info">Set destination to see distance</string>
+    <string name="destination_distance_text">Distance from the destination: </string>
 </resources>
