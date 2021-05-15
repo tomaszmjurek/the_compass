@@ -12,15 +12,11 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Set;
 
 import tj.personal.thecompass.dialogs.SetDestinationDialog;
 
@@ -120,8 +116,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
-    public void onDialogConfirmClick(@NotNull String latitude) {
-        Log.v(TAG, "INPUT " + latitude);
+    public void onDialogConfirmClick(double lat, double lng) {
+        Log.v(TAG, "INPUT " + lat);
         // Resume compass animation
         onResume();
     }
