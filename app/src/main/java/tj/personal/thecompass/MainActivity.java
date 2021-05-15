@@ -14,9 +14,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
+
+import tj.personal.thecompass.dialogs.SetDestinationDialog;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener, SetDestinationDialog.SetDestinationDialogListener {
 
     private SensorManager mSensorManger;
     private String TAG = this.getClass().getSimpleName();
@@ -83,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.getOrientation(R, orientation);
                 azimuth = (float)Math.toDegrees(orientation[0]);
                 azimuth = (azimuth + 360) % 360;
-                Log.v(TAG, String.valueOf(azimuth));
+//                Log.v(TAG, String.valueOf(azimuth));
 
                 Animation animation = new RotateAnimation(-currentAzimuth, -azimuth,
                         Animation.RELATIVE_TO_SELF, 0.5f,
@@ -105,9 +113,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void onClickSetDestinationBtn(View view) {
-        // open prompt window
+        // Pause compass animation to save memory
+        onPause();
+        DialogFragment dialog = new SetDestinationDialog();
+        dialog.show(getSupportFragmentManager(),"SetDestinationDialog");
     }
 
+    @Override
+    public void onDialogConfirmClick(@NotNull String latitude) {
+        Log.v(TAG, "INPUT " + latitude);
+        // Resume compass animation
+        onResume();
+    }
 }
 
 
