@@ -3,6 +3,8 @@ package tj.personal.thecompass;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Matrix;
+import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -34,18 +36,20 @@ import tj.personal.thecompass.dialogs.SetDestinationDialog;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, SetDestinationDialog.SetDestinationDialogListener {
 
-    private SensorManager mSensorManger;
-
     private String TAG = this.getClass().getSimpleName();
-    private float[] mGravity = new float[3];
-    private float[] mGeometric = new float[3];
-    private float azimuth = 0f;
-    private float currentAzimuth = 0f;
 
     // Layout elements
     private ImageView compassImage;
     private Button setDestinationBtn;
     private TextView destinationTV;
+    private ImageView arrowImage;
+
+    // Compass
+    private SensorManager mSensorManger;
+    private float[] mGravity = new float[3];
+    private float[] mGeometric = new float[3];
+    private float azimuth = 0f;
+    private float currentAzimuth = 0f;
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private Location currentLocation;
+    private Location destLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         compassImage = findViewById(R.id.compassImage);
         setDestinationBtn = findViewById(R.id.setDestinationBtn);
         destinationTV = findViewById(R.id.destination_text_view);
+        arrowImage = findViewById(R.id.arrow_image);
         initServices();
     }
 
@@ -95,14 +101,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         final float alpha = 0.97f;
         synchronized (this) {
             if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-//                Log.v(TAG, "ACCEL: " + sensorEvent.values[0] + " " + sensorEvent.values[1] + " " + sensorEvent.values[2]);
                 mGravity[0] = alpha * mGravity[0] + (1 - alpha) * sensorEvent.values[0];
                 mGravity[1] = alpha * mGravity[1] + (1 - alpha) * sensorEvent.values[1];
                 mGravity[2] = alpha * mGravity[2] + (1 - alpha) * sensorEvent.values[2];
             }
 
             if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-//                Log.v(TAG, "MAGNETIC: " + sensorEvent.values[0] + " " + sensorEvent.values[1] + " " + sensorEvent.values[2]);
                 mGeometric[0] = alpha * mGeometric[0] + (1 - alpha) * sensorEvent.values[0];
                 mGeometric[1] = alpha * mGeometric[1] + (1 - alpha) * sensorEvent.values[1];
                 mGeometric[2] = alpha * mGeometric[2] + (1 - alpha) * sensorEvent.values[2];
@@ -116,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.getOrientation(R, orientation);
                 azimuth = (float) Math.toDegrees(orientation[0]);
                 azimuth = (azimuth + 360) % 360;
-//                Log.v(TAG, String.valueOf(azimuth));
 
                 Animation animation = new RotateAnimation(-currentAzimuth, -azimuth,
                         Animation.RELATIVE_TO_SELF, 0.5f,
@@ -128,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 animation.setFillAfter(true);
 
                 compassImage.startAnimation(animation);
+                getBearingToDestination();
             }
         }
     }
@@ -150,42 +154,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onDialogConfirmClick(double lat, double lng) {
         Log.v(TAG, "INPUT " + lat);
-        // Resume compass animation
-        onResume();
-        calculateDistanceToDestination(lat, lng);
-    }
 
-    private void calculateDistanceToDestination(double lat, double lng) {
-        // MOVE TO CONTROLLER
-        Location destLocation = new Location("");
+        destLocation = new Location("");
         destLocation.setLatitude(lat);
         destLocation.setLongitude(lng);
+        calculateDistanceToDestination();
 
-        if (currentLocation != null) {
+        // Resume compass animation
+        onResume();
+    }
+
+    private void calculateDistanceToDestination() {
+        // MOVE TO CONTROLLER
+        if (currentLocation != null && destLocation != null) {
             float distanceInMeters = destLocation.distanceTo(currentLocation);
-//            destinationTV.setText(getString(R.string.destination_distance_text) + distanceInMeters + " m");
-            Log.v(TAG, String.valueOf(distanceInMeters));
+            destinationTV.setText(getString(R.string.destination_distance_text) + distanceInMeters + " m");
+            Log.v(TAG, getString(R.string.destination_distance_text) + distanceInMeters + " m");
         }
     }
 
-    private void getLocationUpdates() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        locationRequest = LocationRequest.create();
-        locationRequest.setInterval(50000);
-        locationRequest.setFastestInterval(50000);
-        locationRequest.setSmallestDisplacement(170f); // 170 m = 0.1 mile
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); //todo set according to your app function
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) return;
-
-                if (!locationResult.getLocations().isEmpty()) {
-                    currentLocation = locationResult.getLastLocation();
-                }
-            }
-        };
-    }
 
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -200,8 +187,63 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    private void getLocationUpdates() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setSmallestDisplacement(10f); // 170 m = 0.1 mile
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                if (!locationResult.getLocations().isEmpty()) {
+                    currentLocation = locationResult.getLastLocation();
+                    if (destLocation != null) calculateDistanceToDestination();
+                }
+            }
+        };
+    }
+
     private void stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback);
+    }
+
+    private void getBearingToDestination() {
+        if (currentLocation != null && destLocation != null) {
+            float bearing = currentLocation.bearingTo(destLocation);
+
+            GeomagneticField geoField = new GeomagneticField(
+                    Double.valueOf(currentLocation.getLatitude()).floatValue(),
+                    Double.valueOf(currentLocation.getLongitude()).floatValue(),
+                    Double.valueOf(currentLocation.getAltitude()).floatValue(),
+                    System.currentTimeMillis()
+            );
+
+            float heading = currentAzimuth;
+            heading += geoField.getDeclination();
+            heading = (bearing + heading);
+            float prevAngle = normalizeDegree(currentAzimuth);
+            float angle = normalizeDegree(heading);
+
+            Log.v(TAG, "ANGLE " + angle + " HEAD " + heading);
+
+            Animation animation = new RotateAnimation(angle, angle, //?
+                    Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f);
+
+            animation.setDuration(100);
+            animation.setRepeatCount(0);
+            animation.setFillAfter(true);
+
+            arrowImage.startAnimation(animation);
+        }
+    }
+
+    private float normalizeDegree(float value) {
+        return (value + 360) % 360;
     }
 
     private void showAlertLocation() {
