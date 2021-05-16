@@ -17,6 +17,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,6 +29,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import tj.personal.thecompass.dialogs.EnableLocationDialog;
 import tj.personal.thecompass.dialogs.SetDestinationDialog;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, SetDestinationDialog.SetDestinationDialogListener {
@@ -64,8 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void initServices() {
         mSensorManger = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-//        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         getLocationUpdates();
     }
 
@@ -137,9 +138,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void onClickSetDestinationBtn(View view) {
         // Pause compass animation to save memory
-        onPause();
-        DialogFragment dialog = new SetDestinationDialog();
-        dialog.show(getSupportFragmentManager(), "SetDestinationDialog");
+        if (currentLocation != null) {
+            onPause();
+            DialogFragment dialog = new SetDestinationDialog();
+            dialog.show(getSupportFragmentManager(), "SetDestinationDialog");
+        } else {
+            Toast.makeText(this, "No GPS location detected", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -158,7 +163,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (currentLocation != null) {
             float distanceInMeters = destLocation.distanceTo(currentLocation);
-            destinationTV.setText(String.format("%sm", R.string.destination_distance_text + distanceInMeters));
+//            destinationTV.setText(getString(R.string.destination_distance_text) + distanceInMeters + " m");
+            Log.v(TAG, String.valueOf(distanceInMeters));
         }
     }
 
@@ -182,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void startLocationUpdates() {
-        //todo fix
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.requestLocationUpdates(
@@ -190,11 +195,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     locationCallback,
                     null /* Looper */
             );
+        } else {
+            showAlertLocation();
         }
     }
 
     private void stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback);
+    }
+
+    private void showAlertLocation() {
+        DialogFragment dialog = new EnableLocationDialog();
+        dialog.show(getSupportFragmentManager(), "EnableLocationDialog");
     }
 }
 

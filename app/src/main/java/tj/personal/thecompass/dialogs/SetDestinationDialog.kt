@@ -8,9 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.set_destination_dialog.*
 import tj.personal.thecompass.R
-import kotlin.math.ln
 
 class SetDestinationDialog : DialogFragment() {
     private val TAG = SetDestinationDialog::class.java.simpleName
@@ -66,11 +64,6 @@ class SetDestinationDialog : DialogFragment() {
     interface SetDestinationDialogListener {
         fun onDialogConfirmClick(lat: Double, lng: Double)
     }
-
-//    private fun isInputValid(lat: Double?, lng: Double?) : Boolean {
-//        return lat != null && lng != null && isValidLatLng(lat, lng)
-//
-//    }
 
     private fun isValidLatLng(lat: Double, lng: Double): Boolean {
         if (lat < -90 || lat > 90) {
