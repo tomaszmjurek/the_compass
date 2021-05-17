@@ -11,7 +11,7 @@ interface Contract {
         fun showDistanceToDestination(distanceInMeters: Float)
     }
 
-    interface Model {
+    interface SensorLogic {
         fun calculateDistanceToDestination() : Float
         fun calculateArrowOrientation() : Float
         fun calculateCompassOrientation(sensorEvent: SensorEvent) : Pair<Float,Float>

@@ -1,44 +1,21 @@
 package tj.personal.thecompass;
 
-import android.content.Context;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationManager;
-import android.util.Log;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
-
-import androidx.fragment.app.DialogFragment;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-
-import org.jetbrains.annotations.NotNull;
-
 import kotlin.Pair;
-import tj.personal.thecompass.Contract;
 
-public class Model implements Contract.Model {
+public class SensorLogic implements Contract.SensorLogic {
 
     // Compass
-//    private SensorManager mSensorManger;
     private float[] mGravity = new float[3];
     private float[] mGeometric = new float[3];
     private float azimuth = 0f;
     private float currentAzimuth = 0f;
 
     // Location
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationManager mLocationManager;
-    private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
     private Location currentLocation;
     private Location destLocation;
 
@@ -91,7 +68,6 @@ public class Model implements Contract.Model {
         float distanceInMeters = 0;
         if (currentLocation != null && destLocation != null) {
             distanceInMeters = destLocation.distanceTo(currentLocation);
-//            Log.v(TAG, getString(R.string.destination_distance_text) + distanceInMeters + " m");
         }
         return distanceInMeters;
     }
@@ -111,8 +87,7 @@ public class Model implements Contract.Model {
 
             float heading = currentAzimuth;
             heading += geoField.getDeclination();
-            heading = (bearing + heading);
-//            float prevAngle = normalizeDegree(currentAzimuth);
+            heading = (bearing + heading) * -1;
             angle = normalizeDegree(heading);
         }
         return angle;

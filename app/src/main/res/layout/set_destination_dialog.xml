@@ -17,7 +17,7 @@
             android:hint="@string/latitude"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberSigned|numberDecimal" />
 
         <TextView
             android:id="@+id/input_error_1"
@@ -31,7 +31,7 @@
             android:hint="@string/longitude"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberSigned|numberDecimal" />
 
         <TextView
             android:id="@+id/input_error_2"

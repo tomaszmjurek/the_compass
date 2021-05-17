@@ -3,20 +3,15 @@ package tj.personal.thecompass;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Matrix;
-import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Layout elements
     private ImageView compassImage;
-//    private Button setDestinationBtn;
     private TextView destinationTV;
     private ImageView arrowImage;
 
@@ -51,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
-//    private LocationManager mLocationManager;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
@@ -60,18 +53,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         compassImage = findViewById(R.id.compassImage);
-//        setDestinationBtn = findViewById(R.id.setDestinationBtn);
         destinationTV = findViewById(R.id.destination_text_view);
+        destinationTV.setText(getString(R.string.destination_info));
         arrowImage = findViewById(R.id.arrow_image);
+        arrowImage.setVisibility(View.INVISIBLE);
 
-        presenter = new Presenter(this, new Model());
+        presenter = new Presenter(this, new SensorLogic());
         initServices();
     }
 
     private void initServices() {
         mSensorManger = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 //        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE); //?
-        getLocationUpdates();
+        initLocationUpdates();
+    }
+
+    private void initLocationUpdates() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setSmallestDisplacement(10f);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                presenter.onLocationChanged(locationResult);
+            }
+        };
     }
 
     @Override
@@ -86,11 +95,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.SENSOR_DELAY_GAME);
     }
 
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.requestLocationUpdates(
+                    locationRequest,
+                    locationCallback,
+                    null /* Looper */
+            );
+        } else {
+            showAlertLocation();
+        }
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
         mSensorManger.unregisterListener(this);
         stopLocationUpdates();
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
     @Override
@@ -115,43 +141,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onDialogConfirmClick(double lat, double lng) {
-        Log.v(TAG, "INPUT " + lat);
-        presenter.onDestinationSet(lat, lng);
         // Resume compass animation
+        presenter.onDestinationSet(lat, lng);
+        arrowImage.setVisibility(View.VISIBLE);
         onResume();
     }
 
-    private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    null /* Looper */
-            );
-        } else {
-            showAlertLocation();
-        }
-    }
-
-    private void getLocationUpdates() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        locationRequest = LocationRequest.create();
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setSmallestDisplacement(10f); // 170 m = 0.1 mile
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                presenter.onLocationChanged(locationResult);
-            }
-        };
-    }
-
-    private void stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback);
-    }
 
     private void showAlertLocation() {
         DialogFragment dialog = new EnableLocationDialog();
@@ -186,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void showDistanceToDestination(float distanceInMeters) {
-        destinationTV.setText(getString(R.string.destination_distance_text) + distanceInMeters + " m");
+        destinationTV.setText(String.format(getString(R.string.destination_distance_text), distanceInMeters));
     }
 }
 

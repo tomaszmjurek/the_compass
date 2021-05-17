@@ -1,17 +1,16 @@
 package tj.personal.thecompass
 
 import android.hardware.SensorEvent
-import android.location.Location
-import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
+import kotlin.math.round
 
 class Presenter(
         private var mainView: Contract.View?,
-        private val model: Contract.Model): Contract.Presenter {
+        private val sensorLogic: Contract.SensorLogic): Contract.Presenter {
 
     override fun onSensorChanged(sensorEvent: SensorEvent) {
-        val azimuthPair :Pair<Float,Float>? = model.calculateCompassOrientation(sensorEvent) //listener
-        val arrowAngle = model.calculateArrowOrientation()
+        val azimuthPair :Pair<Float,Float>? = sensorLogic.calculateCompassOrientation(sensorEvent) //listener
+        val arrowAngle = sensorLogic.calculateArrowOrientation()
         if (mainView != null && azimuthPair != null) {
             mainView!!.animateCompass(azimuthPair.first, azimuthPair.second)
             mainView!!.animateArrow(arrowAngle)
@@ -22,27 +21,26 @@ class Presenter(
         if (locationResult == null) return
 
         if (locationResult.locations.isNotEmpty()) {
-            model.setCurrentLocation(locationResult.lastLocation)
+            sensorLogic.setCurrentLocation(locationResult.lastLocation)
             getDistanceToDestination()
         }
     }
 
     override fun onDestinationSet(lat: Double, lng: Double) {
-        model.setDestination(lat, lng)
+        sensorLogic.setDestination(lat, lng)
         getDistanceToDestination()
     }
 
     private fun getDistanceToDestination() {
-        val distance = model.calculateDistanceToDestination()
+        val distance = sensorLogic.calculateDistanceToDestination()
         if (mainView != null) {
-            mainView!!.showDistanceToDestination(distance)
+            mainView!!.showDistanceToDestination(round(distance))
         }
     }
 
     override fun checkIsCurrentLocationSet(): Boolean {
-        if (model.getCurrentLocation() != null) return true
+        if (sensorLogic.getCurrentLocation() != null) return true
         return false
     }
-
 
 }
