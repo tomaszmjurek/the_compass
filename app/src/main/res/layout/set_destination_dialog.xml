@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical">
+
+        <TextView
+            android:gravity="center"
+            android:textSize="20sp"
+            android:text="@string/enter_destination_coordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/latitude_edit_text"
+            android:hint="@string/latitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberSigned|numberDecimal" />
+
+        <TextView
+            android:id="@+id/input_error_1"
+            android:textSize="15sp"
+            android:textColor="@android:color/holo_red_light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/longitude_edit_text"
+            android:hint="@string/longitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberSigned|numberDecimal" />
+
+        <TextView
+            android:id="@+id/input_error_2"
+            android:textSize="15sp"
+            android:textColor="@android:color/holo_red_light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/confirm_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/confirm"/>
+
+</LinearLayout>
