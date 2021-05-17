@@ -19,7 +19,6 @@ public class SensorLogic implements Contract.SensorLogic {
     private Location currentLocation;
     private Location destLocation;
 
-
     @Override
     public Pair<Float, Float> calculateCompassOrientation(SensorEvent sensorEvent) {
         final float alpha = 0.97f;
