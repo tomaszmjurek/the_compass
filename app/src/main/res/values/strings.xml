@@ -7,5 +7,5 @@
     <string name="longitude">Longitude</string>
     <string name="enter_destination_coordinates">Enter destination coordinates</string>
     <string name="destination_info">Set destination to see distance</string>
-    <string name="destination_distance_text">Distance from the destination: </string>
+    <string name="destination_distance_text">Distance from the destination: %1$f m</string>
 </resources>
